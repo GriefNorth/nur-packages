@@ -20,6 +20,7 @@ in
     package = mkOption {
       type = types.package;
       default = pkgs.torrserver;
+      defaultText = literalExpression "pkgs.torrserver";
       description = "TorrServer package to use";
     };
 

@@ -13,7 +13,10 @@
       flake-utils,
       ...
     }:
-    flake-utils.lib.eachDefaultSystem (
+    let
+      eachSystem = flake-utils.lib.eachDefaultSystem;
+    in
+    (eachSystem (
       system:
       let
         pkgs = import nixpkgs {
@@ -27,14 +30,14 @@
           teambridge = pkgs.callPackage ./pkgs/teambridge { };
           torrserver = pkgs.callPackage ./pkgs/torrserver { };
         };
-
-        nixosModules = {
-          torrserver = ./modules/torrserver/nixos.nix;
-        };
-
-        homeModules = {
-          torrserver = ./modules/torrserver/home-manager.nix;
-        };
       }
-    );
+    ))
+    // {
+      nixosModules = {
+        torrserver = ./modules/torrserver/nixos.nix;
+      };
+      homeModules = {
+        torrserver = ./modules/torrserver/home-manager.nix;
+      };
+    };
 }
