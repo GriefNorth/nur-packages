@@ -1,0 +1,39 @@
+name: Update srslist hash
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+
+jobs:
+  update-hash:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v30
+      - name: Compute new srslist hash
+        id: hash
+        run: |
+          curl -sL "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h" -o /tmp/srslist.h
+          HASH=$(nix hash file --type sha256 --sri /tmp/srslist.h)
+          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+      - name: Update hash if changed
+        id: check
+        run: |
+          CURRENT_HASH=$(grep -oP 'hash = "\K[^"]+' pkgs/throne/default.nix)
+          if [ "$CURRENT_HASH" != "${{ steps.hash.outputs.hash }}" ]; then
+            sed -i "s|hash = \"$CURRENT_HASH\"|hash = \"${{ steps.hash.outputs.hash }}\"|" pkgs/throne/default.nix
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Create PR
+        if: steps.check.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "throne: update srslist.h hash"
+          title: "throne: update srslist.h hash"
+          body: "Automated hash update for srslist.h"
+          branch: "auto/update-srslist-hash"
+          delete-branch: true
