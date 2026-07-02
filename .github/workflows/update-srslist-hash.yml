@@ -24,6 +24,7 @@ jobs:
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
       - name: Create PR
+        id: pr
         if: steps.check.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
@@ -33,3 +34,9 @@ jobs:
           body: "Automated hash update for srslist.h"
           branch: "auto/update-srslist-hash"
           delete-branch: true
+      - name: Auto merge PR
+        if: steps.pr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge --squash --delete-branch "${{ steps.pr.outputs.pull-request-number }}"
