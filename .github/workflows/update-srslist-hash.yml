@@ -28,7 +28,7 @@ jobs:
         if: steps.check.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v8
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT }}
           commit-message: "throne: update srslist.h hash"
           title: "throne: update srslist.h hash"
           body: "Automated hash update for srslist.h"
@@ -37,6 +37,6 @@ jobs:
       - name: Auto merge PR
         if: steps.pr.outputs.pull-request-number != ''
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT }}
         run: |
           gh pr merge --squash --delete-branch "${{ steps.pr.outputs.pull-request-number }}"
